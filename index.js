@@ -5,6 +5,10 @@ import fs from 'fs'
 import path from 'path';
 import { fileURLToPath } from 'url';
 import PrettyError from 'pretty-error';
+import cliProgress from 'cli-progress'
+import colors from 'ansi-colors'
+import checkInternetConnected from 'check-internet-connected';
+
 import logError from './utils/logError.js';
 import logInfo from './utils/logInfo.js'
 import editPkgJson from './utils/editPkgJson.js';
@@ -13,10 +17,7 @@ import initWorkplace from './utils/initWorkplace.js'
 import createDirectoryContents from './utils/createDirectoryContents.js'
 import HeaderLog from './utils/HeaderLog.js'
 import asyncLog from './utils/asyncLog.js';
-import cliProgress from 'cli-progress'
-import colors from 'ansi-colors'
 import ctaWordArt from './utils/ctaWordArt.js'
-import checkInternetConnected from 'check-internet-connected';
 
 const dependenciesBar = new cliProgress.SingleBar({
     format: colors.green('> ') + colors.blue('{bar}') + '| {percentage}% || {value}/{total} Modules',
@@ -51,11 +52,11 @@ const QUESTIONS = [{
     },
 ];
 
-
-(async () => {
+const run = async () => {
     console.clear()
     await asyncLog(colors.yellow("Checking internet connection..."))
     try {
+        // try to see if internet is connected.
         await checkInternetConnected()
     } catch {
         console.clear()
@@ -80,13 +81,17 @@ const QUESTIONS = [{
                     msg: `Succesfully installed ${dependency}`
                 })),
             ]
+            // these will be console logged after the set up has finished.            
             const usageSteps = [
                 "Create a bot in Botfather bot in Telegran.",
                 "Configure the settings in .env",
                 "run npm start",
             ]
             if (!inherit) {
-                // if the user chose a name, Try to create a directory with that name.
+                // if the user entered a name, create a directory with it.
+                // the project will be set up inside the directory.
+                // if the user does not provide a name and enters . instead.
+                // the project will be set up inside the parent directory and will inherit its name as well.
                 try {
                     fs.mkdirSync(`${currentDirectory}/${projectName}`)
                 } catch (err) {
@@ -96,7 +101,8 @@ const QUESTIONS = [{
 
             // word art of create-telebot-app
             await ctaWordArt()
-            // copy every file and directory of the selected template.
+            
+            // copy the selected template into the project path.
             await createDirectoryContents(currentDirectory, templatePath, projectName, inherit)
             await logInfo("Finished creating files.")
 
@@ -107,7 +113,7 @@ const QUESTIONS = [{
             await HeaderLog("Installing dependencies")
             let progress = 0
             dependenciesBar.start(workplaceSetUpSteps.length, progress) // start the progress bar with a total value of 100 and start value of 0
-            // install each dependencies specified in workplaceSetUpSteps.
+            // install each dependencies specified in workplaceSetUpSteps array.
             for await (const step of workplaceSetUpSteps) {
                 if (step.cmd) // if the object contains a cmd property
                     await execShell(step.cmd) // execute its value in cmd using exec.
@@ -140,4 +146,6 @@ const QUESTIONS = [{
             await logError("An error occurred, please try again.")
             return pe.render(err)
         })
-})()
+}
+
+run()
