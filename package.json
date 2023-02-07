@@ -1,0 +1,46 @@
+{
+  "name": "create-telebot-app",
+  "version": "1.0.0",
+  "description": "Creates a boilerplate telebot project which lets you easily create your telegram bot.",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "create-telebot-app": "./index.js"
+  },
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zNiGhTFuRyZNTT/create-telebot-app.git"
+  },
+  "keywords": [
+    "telebot",
+    "telegram-bot",
+    "telegram",
+    "telegram bot",
+    "telebot js",
+    "javascript",
+    "node js"
+  ],
+  "author": "Armin Amiri",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zNiGhTFuRyZNTT/create-telebot-app/issues"
+  },
+  "homepage": "https://github.com/zNiGhTFuRyZNTT/create-telebot-app#readme",
+  "devDependencies": {
+    "@babel/core": "^7.20.12",
+    "eslint": "^8.33.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "parcel-bundler": "^1.12.5",
+    "prettier": "^2.8.3"
+  },
+  "dependencies": {
+    "@npmcli/package-json": "^3.0.0",
+    "inquirer": "^9.1.4",
+    "rimraf": "^4.1.1"
+  }
+}
