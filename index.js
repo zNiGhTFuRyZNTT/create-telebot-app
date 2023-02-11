@@ -4,8 +4,12 @@ import inquirer from 'inquirer';
 import fs from 'fs'
 import path from 'path';
 import { fileURLToPath } from 'url';
+import PackageJson from '@npmcli/package-json'
+import PrettyError from 'pretty-error';
+import { exec } from 'child_process';
 
-
+const pe = new PrettyError();
+pe.start() //
 const CURR_DIR = process.cwd();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,36 +24,79 @@ const QUESTIONS = [{
     {
         name: 'project-name',
         type: 'input',
-        message: 'Project name: (where to create? Enter "." to inherit from current directory)',
+        message: 'Project name: (Enter "." to inherit from current directory)',
         validate: function (input) {
-            if (/^([A-Za-z\-\_\d])+$/.test(input)) return true;
+            if (/^([A-Za-z-\.\-\_\d])+$/.test(input)) return true;
             else return 'Project name may only include letters, numbers, underscores and hashes.';
         }
     },
 ];
-// TODO fix . path and other path
-// TODO figure the fucking package.json
 
-inquirer.prompt(QUESTIONS).then(answers => {
-    const projectChoice = answers['project-choice'];
-    const projectName = answers['project-name'];
-    const templatePath = `${__dirname}/templates/${projectChoice}`;
+function main() {
+    console.clear()
+    inquirer.prompt(QUESTIONS)
+        .then(async answers => {
+            const projectChoice = answers['project-choice'];
+            const projectName = answers['project-name'];
+            const templatePath = `${__dirname}/templates/${projectChoice}`;
+            const inherit = projectName === "."
+            const dirName = path.basename(path.resolve(process.cwd()))
+            const dependencies = [
+                "telebot",
+                "dotenv",
+                "sqlite3"
+            ]
+            const workplaceSetUpSteps = [
+                {
+                    cmd: `npm init -y ${!inherit ? `-w /${projectName}` : '' }`,
+                    msg: 'Workplace Initiated (package.json).'
+                },
+                {
+                    msg: "Attempting to install dependencies..."
+                },
+                ...dependencies.map(dependency => ({
+                    cmd: `npm install ${!inherit ? `--prefix ./${projectName} ${dependency}` : dependency}`,
+                    msg: `Succesfully installed ${dependency}`
+                }))
+            ]
+            if (!inherit) {
+                try {
+                    fs.mkdirSync(`${CURR_DIR}/${projectName}`)
+                } catch (err) {
+                    return await logError(`A directory with this name already exists, please try another name.`)
+                }
+            }
 
-    const inherit = templatePath === "."
-    if (!inherit)
-        fs.mkdirSync(`${CURR_DIR}/${projectName}`)
 
-
-    createDirectoryContents(templatePath, projectName, inherit)
-        .then(() => {
-            
+            createDirectoryContents(templatePath, projectName, inherit)
+                .then(async () => {
+                    await logInfo("Finished creating files.")
+                    await logInfo("Attempting to set up workplace and install the dependencies now...")
+                    for ( const step of workplaceSetUpSteps ) {
+                        console.log(step.cmd);
+                        if (step.cmd)
+                            await execShell(step.cmd)
+                        await logInfo(step.msg)
+                    }
+                    // const command = `npm install ${!inherit ? `--prefix ./${projectName}` : ''}`
+                    // console.log(command);
+                    // await execShell(command)
+                })
+                .catch(async err => {
+                    console.log(err);
+                    // await logError(`[>] Failed updating package.json`)
+                    return pe.render(err)
+                })
         })
-        .catch(err => {
-            console.error(err)
+        .catch(async err => {
+            await logError("An error occurred while retrieving inputs, please try again.")
+            return pe.render(err)
         })
-});
 
-function createDirectoryContents(templatePath, newProjectPath, inherit) {
+}
+
+
+function createDirectoryContents(templatePath, newProjectPath, inherit = false) {
     return new Promise((resolve, reject) => {
         const filesToCreate = fs.readdirSync(templatePath);
         // recursively copy the template directories and files
@@ -58,21 +105,27 @@ function createDirectoryContents(templatePath, newProjectPath, inherit) {
                 const origFilePath = `${templatePath}/${file}`;
                 // get stats about the current file
                 const stats = fs.statSync(origFilePath);
-    
+
                 if (file === '.npmignore') file = '.gitignore'
-    
+
                 if (stats.isFile()) {
                     const contents = fs.readFileSync(origFilePath, 'utf8');
-                    const writePath = inherit
-                        ? `${CURR_DIR}/${file}`
-                        : `${CURR_DIR}/${newProjectPath}/${file}`;
+                    const writePath = inherit ?
+                        `${CURR_DIR}/${file}` :
+                        `${CURR_DIR}/${newProjectPath}/${file}`;
                     fs.writeFileSync(writePath, contents, 'utf8');
                 } else if (stats.isDirectory()) {
-                    fs.mkdirSync(`${CURR_DIR}/${newProjectPath}/${file}`);
+                    const writePath = inherit ?
+                        `${CURR_DIR}/${file}` :
+                        `${CURR_DIR}/${newProjectPath}/${file}`;
+                    try {
+                        fs.mkdirSync(writePath);
+                    } catch (e) {
+                        pe.render(new Error('[!] A project may seem to exist in the path specified, try another name.'));
+                    }
                     // recursive call
                     createDirectoryContents(`${templatePath}/${file}`, `${newProjectPath}/${file}`);
                 }
-                console.log(file);
                 if (index === filesToCreate.length - 1)
                     resolve(true)
             });
@@ -80,49 +133,60 @@ function createDirectoryContents(templatePath, newProjectPath, inherit) {
             reject(err)
         }
     })
-
 }
 
-function updatePackageJson(path) {
-
+function execShell(cmd) {
+    return new Promise((resolve, reject) => {
+        exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                reject(error);
+            }
+            resolve(stdout ? stdout : stderr);
+        });
+    });
 }
 
+const colorsCC = {
+    Reset : "\x1b[0m",
+    FgBlue : "\x1b[34m",
+    FgMagenta : "\x1b[35m"
+}
+
+function logError(msg) {
+    return new Promise(resolve => {
+        console.log("\x1b[41m Error \x1b[0m", `\x1b[31m ${msg} \x1b[0m`)
+        resolve()
+    })
+} // TODO fix colors class and refactor the code
+
+function logInfo(msg) {
+    return new Promise(resolve => {
+        console.log(colorsCC.FgMagenta + "[CTA] -> " + colorsCC.FgBlue + msg + colorsCC.Reset)
+        resolve()
+    })
+}
+
+async function editPkgJson(obj, path) {
+    const pkgJson = new PackageJson(path)
+    await pkgJson.load()
+    pkgJson.update({
+        name: inherit ?
+            path.basename(path.resolve(process.cwd())) : projectName,
+    })
+    await pkgJson.save()
+    await logVerbose("package.json has updated successfully.")
+}
+
+// TODO fix edit pakcage.json -> add start script
+// < - -- -- Driver Code -- -- - >
+main()
 
 
 
-// // edit package.json
-// if (fs.existsSync(`./${newProjectPath}/package.json`)) {
-//     assert.equal(
-//         set(packageJsonDataContent)
-//       );
-// } 
-// else {
-//     console.log("[!] package.json was not found! Creating and appending data...");
-//     fs.appendFile('package.json', packageJsonDataContent, function (err) {
-//         if (err) throw err;
-//         console.log('[>] package.json was successfully created.');
-//       });
-// }
 
 
 
 
 
-// const packageJsonDataContent = `{
-//     "name": "${newProjectPath}",
-//     "version": "1.0.0",
-//     "description": "My telebot Telegram bot.",
-//     "main": "main.js",
-//     "scripts": {
-//       "test": "echo \"Error: no test specified\" && exit 1",
-//       "start": "node ."
-//     },
-//     "keywords": [],
-//     "author": "",
-//     "license": "ISC",
-//     "dependencies": {
-//       "dotenv": "^16.0.3",
-//       "sqlite3": "^5.1.4",
-//       "telebot": "^1.4.1"
-//     }
-//   }`
+
+
