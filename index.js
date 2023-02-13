@@ -6,10 +6,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import PackageJson from '@npmcli/package-json'
 import PrettyError from 'pretty-error';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 
 const pe = new PrettyError();
-pe.start() //
+pe.start()
 const CURR_DIR = process.cwd();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,16 +48,15 @@ function main() {
             ]
             const workplaceSetUpSteps = [
                 {
-                    cmd: `npm init -y ${!inherit ? `-w /${projectName}` : '' }`,
-                    msg: 'Workplace Initiated (package.json).'
-                },
-                {
                     msg: "Attempting to install dependencies..."
                 },
                 ...dependencies.map(dependency => ({
                     cmd: `npm install ${!inherit ? `--prefix ./${projectName} ${dependency}` : dependency}`,
                     msg: `Succesfully installed ${dependency}`
-                }))
+                })),
+                {
+                    msg: "Adding start command to package.json..."
+                },
             ]
             if (!inherit) {
                 try {
@@ -72,12 +71,22 @@ function main() {
                 .then(async () => {
                     await logInfo("Finished creating files.")
                     await logInfo("Attempting to set up workplace and install the dependencies now...")
+                    await initWorkplace(inherit, projectName)
                     for ( const step of workplaceSetUpSteps ) {
-                        console.log(step.cmd);
                         if (step.cmd)
                             await execShell(step.cmd)
                         await logInfo(step.msg)
                     }
+                    setTimeout(async () => {
+                        await editPkgJson({
+                            scripts: {
+                                test: "echo \"Error: no test specified\" && exit 1",
+                                start: "node ."
+                            },
+                        }, inherit ? './' : `./${projectName}/`)
+                    }, 1000);
+
+                    await logInfo("Succesfully added start script.")
                     // const command = `npm install ${!inherit ? `--prefix ./${projectName}` : ''}`
                     // console.log(command);
                     // await execShell(command)
@@ -92,7 +101,6 @@ function main() {
             await logError("An error occurred while retrieving inputs, please try again.")
             return pe.render(err)
         })
-
 }
 
 
@@ -146,6 +154,16 @@ function execShell(cmd) {
     });
 }
 
+async function initWorkplace(inherit, projectname="") {
+    return new Promise(resolve => {
+        spawn('npm', ['init', '-y'], {
+            cwd: inherit ? __dirname : `${path.resolve(process.cwd())}/${projectname}/`,        // <--- 
+            shell: true,
+            // stdio: 'inherit'
+        });
+        resolve(true)
+    })
+}
 const colorsCC = {
     Reset : "\x1b[0m",
     FgBlue : "\x1b[34m",
@@ -167,15 +185,16 @@ function logInfo(msg) {
 }
 
 async function editPkgJson(obj, path) {
-    const pkgJson = new PackageJson(path)
-    await pkgJson.load()
-    pkgJson.update({
-        name: inherit ?
-            path.basename(path.resolve(process.cwd())) : projectName,
+    return new Promise(async (resolve, reject) => {
+        const pkgJson = new PackageJson(path)
+        await pkgJson.load()
+        pkgJson.update(obj)
+        await pkgJson.save()
+        await logInfo("package.json has updated successfully.")
+        resolve(true)
     })
-    await pkgJson.save()
-    await logVerbose("package.json has updated successfully.")
-}
+
+}   
 
 // TODO fix edit pakcage.json -> add start script
 // < - -- -- Driver Code -- -- - >
