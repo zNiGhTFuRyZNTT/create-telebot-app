@@ -4,7 +4,7 @@ const { getUser } = require('../database')
 function sendLog(bot, msg) {
     const chId = process.env.LOG_CHANNEL_ID
     if (!chId)
-        return console.log("[!] Log channel id not specidied, skipping ...")
+        return console.log("[!] Log channel id not specidied, skipping error logging ...")
     bot.sendMessage(chId, msg)
         .then(console.log("Error log has been sent."))
         .catch(console.log)

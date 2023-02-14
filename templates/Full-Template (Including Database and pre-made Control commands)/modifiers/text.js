@@ -3,7 +3,7 @@ const { sendLog } = require('../functions')
 module.exports = {
     name: 'text', // which main event you'd like to edit the data before passing it to.
     execute(bot, data) {
-
+        const msg = data.message
         // < - -- --- Add User to Database --- -- - >
         const username = data.message.from.username
         const firstname = data.message.from.first_name
