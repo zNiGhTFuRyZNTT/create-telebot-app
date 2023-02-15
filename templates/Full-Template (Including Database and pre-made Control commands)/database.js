@@ -1,47 +1,21 @@
 const sqlite3 = require('sqlite3').verbose()
-const path = require('path')
-const fs = require('fs');
-const databaseName = 'data.sqlite3'
-
-var db
-initDatabase(databaseName).then(data => db = data)
+require("dotenv").config();
+const databaseName = process.env.DATABASE_FILENAME
+const db = initDatabase(databaseName)
 
 function initDatabase(filename) {
-        const db = new sqlite3.Database(filename, sqlite3.OPEN_READWRITE , async (err) => {
-            if (err && err.code == "SQLITE_CANTOPEN") {
-                await createDatabase(filename);
-                initDatabase(filename)
-            } 
-            else if (err) {
-                console.log("Getting error " + err);
-                exit(1);
-            }
-            console.log("[sqlite3] Connected to Database.");
-            return db
-        });
+    const db = new sqlite3.Database(filename, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, async (err) => {
+        if (err) console.log(err)
+        await createTables(db)
+    })
+    console.log("[sqlite3] Connected to Database.")
+    return db
 }
 
-function createDatabase(filename) {
-    return new Promise((resolve, reject) => {
-        const newdb = new sqlite3.Database(filename, async (err) => {
-            if (err) {
-                console.log("Getting error " + err);
-                exit(1);
-            }
-            try {
-                console.log("sdfsdfs");
-                await createTables(newdb);
-                resolve(true)   
-            } catch (error) {
-                reject(error);
-            }
-        });
-    })
-}
 function createTables(db) {
     return new Promise(async (resolve, reject) => {
         try {
-            await db.run(`CREATE TABLE "users" (
+            await db.run(`CREATE TABLE IF NOT EXISTS "users" (
                 "id"	INTEGER NOT NULL UNIQUE,
                 "username"	TEXT,
                 "firstname"	TEXT,
@@ -52,14 +26,13 @@ function createTables(db) {
                 PRIMARY KEY("id" AUTOINCREMENT)
             );`)
             resolve()
-        } 
-        catch (error) {
+        } catch (error) {
             reject(error)
         }
     })
 }
 
-
+// get all users who had sent queries to the bot since the db was created.
 function getAllUsers() {
     return new Promise((resolve, reject) => {
         db.all(`SELECT * FROM users`, (err, users) => {
@@ -69,6 +42,7 @@ function getAllUsers() {
     })
 }
 
+// get information of a specific user in the database if exists.
 function getUser(userID) {
     return new Promise((resolve, reject) => {
         db.get(`SELECT * FROM users WHERE user_id = ?`, userID, (err, user) => {
@@ -84,38 +58,37 @@ function addUser(username, first_name, last_name, userID, chatID) {
             resolve(false)
         else
             getUser(userID)
-                .then(res => {
-                    if (res) {
-                        if (res.username != username || res.firstname != first_name || res.lastname != last_name)
-                            db.run("UPDATE users SET username = ?, firstname = ?, lastname = ? WHERE user_id = ?", [username, first_name, last_name, userID], err => {
-                                if (err) reject(err)
-                                
-                                resolve(true)
-                            })
-                        else
-                            resolve(false)
-                    }
-                    else 
-                        db.run("INSERT INTO users (username, firstname, lastname, user_id) VALUES (?, ?, ?, ?)", [username, first_name, last_name, userID], err => {
+            .then(res => {
+                if (res) {
+                    if (res.username != username || res.firstname != first_name || res.lastname != last_name)
+                        db.run("UPDATE users SET username = ?, firstname = ?, lastname = ? WHERE user_id = ?", [username, first_name, last_name, userID], err => {
                             if (err) reject(err)
-                            
+
                             resolve(true)
-                        }) 
-                })
-                .catch(reject)
+                        })
+                    else
+                        resolve(false)
+                } else
+                    db.run("INSERT INTO users (username, firstname, lastname, user_id) VALUES (?, ?, ?, ?)", [username, first_name, last_name, userID], err => {
+                        if (err) reject(err)
+
+                        resolve(true)
+                    })
+            })
+            .catch(reject)
     })
 }
 
-function updateAll(user_id) {
+function updateAllSentQueries(user_id) {
     return new Promise((resolve, reject) => {
         db.get(`SELECT \"all\" FROM users WHERE user_id = ?`, user_id, (err, user) => {
             if (err) reject(err)
-            
-            if (user) 
+
+            if (user)
                 db.run("UPDATE users SET \"all\" = ? WHERE user_id = ?", [++user.all, user_id], err => {
                     if (err) reject(err)
                     resolve()
-                }) 
+                })
         })
     })
 }
@@ -128,10 +101,10 @@ function getStatus() {
             db.get('SELECT SUM("all") FROM users', (err, all) => {
                 if (err) reject(err)
 
-                    resolve({
-                        all: all['SUM("all")'],
-                        users: users['COUNT(id)'],
-                    })
+                resolve({
+                    all: all['SUM("all")'],
+                    users: users['COUNT(id)'],
+                })
             })
         })
     })
@@ -162,7 +135,7 @@ module.exports = {
     getUser: getUser,
     getAllUsers: getAllUsers,
     getStatus: getStatus,
-    updateAll: updateAll,
+    updateAllSentQueries: updateAllSentQueries,
     toggleBlackList: toggleBlackList,
     isBanned: isBanned,
 }

@@ -4,8 +4,8 @@
  * @description Telebot boilerplate project template.
 */
 require('dotenv').config()
+require('./database')
 const TeleBot = require('telebot')
-const Database = require('./database')
 const token = process.env.API_KEY
 const bot = new TeleBot({
     token: token,

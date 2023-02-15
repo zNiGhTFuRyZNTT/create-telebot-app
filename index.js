@@ -179,7 +179,7 @@ function logError(msg) {
 
 function logInfo(msg) {
     return new Promise(resolve => {
-        console.log(colorsCC.FgMagenta + "[CTA] -> " + colorsCC.FgBlue + msg + colorsCC.Reset)
+        console.log(colorsCC.FgMagenta + "[CTA] |-> " + colorsCC.FgBlue + msg + colorsCC.Reset)
         resolve()
     })
 }

@@ -12,7 +12,7 @@ module.exports = {
         const chatId = data.message.chat.id
         Database.addUser(username, firstname, lastname, userId, chatId)
             .then(() => {
-                Database.updateAll(userId)
+                Database.updateAllSentQueries(userId)
                     .catch(err => sendLog(bot, `UserID: ${userId}\nQuery: ${msg.text}\n${JSON.stringify(err)}`))
             })
             .catch(err => sendLog(bot, `UserID: ${userId}\nQuery: ${msg.text}\n${JSON.stringify(err)}`))
