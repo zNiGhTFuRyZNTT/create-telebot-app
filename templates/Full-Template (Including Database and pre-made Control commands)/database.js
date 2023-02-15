@@ -1,22 +1,64 @@
 const sqlite3 = require('sqlite3').verbose()
 const path = require('path')
-const db = new sqlite3.Database(path.join(__dirname, '/data.sqlite3'), sqlite3.OPEN_READWRITE , err => {
-    if (err)
-        return console.error(err.message)
-    console.log("[Database] > Connected to SQLite Database")
-})
+const fs = require('fs');
+const databaseName = 'data.sqlite3'
 
-// Uncomment this and run the file to create the table in case the database was deleted.
-// db.run(`CREATE TABLE "users" (
-// 	"id"	INTEGER NOT NULL UNIQUE,
-// 	"username"	TEXT,
-// 	"firstname"	TEXT,
-// 	"lastname"	TEXT,
-// 	"user_id"	NUMERIC NOT NULL UNIQUE,
-// 	"all"	INTEGER NOT NULL DEFAULT 0,
-// 	"banned"	INTEGER NOT NULL DEFAULT 0,
-// 	PRIMARY KEY("id" AUTOINCREMENT)
-// );`)
+var db
+initDatabase(databaseName).then(data => db = data)
+
+function initDatabase(filename) {
+        const db = new sqlite3.Database(filename, sqlite3.OPEN_READWRITE , async (err) => {
+            if (err && err.code == "SQLITE_CANTOPEN") {
+                await createDatabase(filename);
+                initDatabase(filename)
+            } 
+            else if (err) {
+                console.log("Getting error " + err);
+                exit(1);
+            }
+            console.log("[sqlite3] Connected to Database.");
+            return db
+        });
+}
+
+function createDatabase(filename) {
+    return new Promise((resolve, reject) => {
+        const newdb = new sqlite3.Database(filename, async (err) => {
+            if (err) {
+                console.log("Getting error " + err);
+                exit(1);
+            }
+            try {
+                console.log("sdfsdfs");
+                await createTables(newdb);
+                resolve(true)   
+            } catch (error) {
+                reject(error);
+            }
+        });
+    })
+}
+function createTables(db) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            await db.run(`CREATE TABLE "users" (
+                "id"	INTEGER NOT NULL UNIQUE,
+                "username"	TEXT,
+                "firstname"	TEXT,
+                "lastname"	TEXT,
+                "user_id"	NUMERIC NOT NULL UNIQUE,
+                "all"	INTEGER NOT NULL DEFAULT 0,
+                "banned"	INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY("id" AUTOINCREMENT)
+            );`)
+            resolve()
+        } 
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
 
 function getAllUsers() {
     return new Promise((resolve, reject) => {
