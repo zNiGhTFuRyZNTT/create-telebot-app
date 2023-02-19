@@ -14,7 +14,11 @@ const CURR_DIR = process.cwd();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CHOICES = fs.readdirSync(`${__dirname}/templates`);
-
+const DEPENDENCIES = [
+    "telebot",
+    "dotenv",
+    "sqlite3"
+]
 const QUESTIONS = [{
         name: 'project-choice',
         type: 'list',
@@ -40,17 +44,11 @@ function main() {
             const projectName = answers['project-name'];
             const templatePath = `${__dirname}/templates/${projectChoice}`;
             const inherit = projectName === "."
-            const dirName = path.basename(path.resolve(process.cwd()))
-            const dependencies = [
-                "telebot",
-                "dotenv",
-                "sqlite3"
-            ]
             const workplaceSetUpSteps = [
                 {
                     msg: "Attempting to install dependencies..."
                 },
-                ...dependencies.map(dependency => ({
+                ...DEPENDENCIES.map(dependency => ({
                     cmd: `npm install ${!inherit ? `--prefix ./${projectName} ${dependency}` : dependency}`,
                     msg: `Succesfully installed ${dependency}`
                 })),
@@ -65,7 +63,6 @@ function main() {
                     return await logError(`A directory with this name already exists, please try another name.`)
                 }
             }
-
 
             createDirectoryContents(templatePath, projectName, inherit)
                 .then(async () => {
@@ -87,13 +84,10 @@ function main() {
                     }, 1000);
 
                     await logInfo("Succesfully added start script.")
-                    // const command = `npm install ${!inherit ? `--prefix ./${projectName}` : ''}`
-                    // console.log(command);
-                    // await execShell(command)
                 })
                 .catch(async err => {
                     console.log(err);
-                    // await logError(`[>] Failed updating package.json`)
+                    await logError(`[>] Failed updating package.json`)
                     return pe.render(err)
                 })
         })
