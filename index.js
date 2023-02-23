@@ -4,13 +4,25 @@ import inquirer from 'inquirer';
 import fs from 'fs'
 import path from 'path';
 import { fileURLToPath } from 'url';
-import PackageJson from '@npmcli/package-json'
 import PrettyError from 'pretty-error';
-import { exec, spawn } from 'child_process';
+import logError from './utils/logError.js';
+import logInfo from './utils/logInfo.js'
+import editPkgJson from './utils/editPkgJson.js';
+import execShell from './utils/execShell.js'
+import initWorkplace from './utils/initWorkplace.js'
+import createDirectoryContents from './utils/createDirectoryContents.js'
+import dependencyHeaderLog from './utils/dependencyHeaderLog.js'
+import cliProgress from 'cli-progress'
+import colors from 'ansi-colors'
 
-const pe = new PrettyError();
-pe.start()
-const CURR_DIR = process.cwd();
+const dependenciesBar = new cliProgress.SingleBar({
+    format: colors.green('> ') + colors.blue('{bar}') + '| {percentage}% || {value}/{total} Chunks',
+    barCompleteChar: '\u2588',
+    barIncompleteChar: '\u2591',
+    hideCursor: true
+});
+const pe = new PrettyError().start()
+const currentDirectory = process.cwd();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CHOICES = fs.readdirSync(`${__dirname}/templates`);
@@ -36,170 +48,65 @@ const QUESTIONS = [{
     },
 ];
 
-function main() {
-    console.clear()
-    inquirer.prompt(QUESTIONS)
-        .then(async answers => {
-            const projectChoice = answers['project-choice'];
-            const projectName = answers['project-name'];
-            const templatePath = `${__dirname}/templates/${projectChoice}`;
-            const inherit = projectName === "."
-            const workplaceSetUpSteps = [
-                {
-                    msg: "Attempting to install dependencies..."
-                },
-                ...DEPENDENCIES.map(dependency => ({
-                    cmd: `npm install ${!inherit ? `--prefix ./${projectName} ${dependency}` : dependency}`,
-                    msg: `Succesfully installed ${dependency}`
-                })),
-                {
-                    msg: "Adding start command to package.json..."
-                },
-            ]
-            if (!inherit) {
-                try {
-                    fs.mkdirSync(`${CURR_DIR}/${projectName}`)
-                } catch (err) {
-                    return await logError(`A directory with this name already exists, please try another name.`)
-                }
+console.clear()
+inquirer.prompt(QUESTIONS)
+    .then(async answers => {
+        const projectChoice = answers['project-choice'];
+        const projectName = answers['project-name'];
+        // get the exact path of the chosen template.
+        const templatePath = `${__dirname}/templates/${projectChoice}`;
+        const inherit = projectName === "."
+        // the array below contains a few steps of the set up.
+        // each step must have a property named msg to be logged to the console.
+        // a cmd property is optional and the value assined to it will be executed,
+        // before logging the value of the msg property of the object.
+        const workplaceSetUpSteps = [
+            ...DEPENDENCIES.map(dependency => ({
+                cmd: `npm install ${!inherit ? `--prefix ./${projectName} ${dependency}` : dependency}`,
+                msg: `Succesfully installed ${dependency}`
+            })),
+        ]
+        if (!inherit) {
+            // if the user chose a name, Try to create a directory with that name.
+            try {
+                fs.mkdirSync(`${currentDirectory}/${projectName}`)
+            } catch (err) {
+                return await logError(`A directory with this name already exists, please try another name.`)
             }
-
-            createDirectoryContents(templatePath, projectName, inherit)
-                .then(async () => {
-                    await logInfo("Finished creating files.")
-                    await logInfo("Attempting to set up workplace and install the dependencies now...")
-                    await initWorkplace(inherit, projectName)
-                    for ( const step of workplaceSetUpSteps ) {
-                        if (step.cmd)
-                            await execShell(step.cmd)
-                        await logInfo(step.msg)
-                    }
-                    setTimeout(async () => {
-                        await editPkgJson({
-                            scripts: {
-                                test: "echo \"Error: no test specified\" && exit 1",
-                                start: "node ."
-                            },
-                        }, inherit ? './' : `./${projectName}/`)
-                    }, 1000);
-
-                    await logInfo("Succesfully added start script.")
-                })
-                .catch(async err => {
-                    console.log(err);
-                    await logError(`[>] Failed updating package.json`)
-                    return pe.render(err)
-                })
-        })
-        .catch(async err => {
-            await logError("An error occurred while retrieving inputs, please try again.")
-            return pe.render(err)
-        })
-}
-
-
-function createDirectoryContents(templatePath, newProjectPath, inherit = false) {
-    return new Promise((resolve, reject) => {
-        const filesToCreate = fs.readdirSync(templatePath);
-        // recursively copy the template directories and files
-        try {
-            filesToCreate.forEach((file, index) => {
-                const origFilePath = `${templatePath}/${file}`;
-                // get stats about the current file
-                const stats = fs.statSync(origFilePath);
-
-                if (file === '.npmignore') file = '.gitignore'
-
-                if (stats.isFile()) {
-                    const contents = fs.readFileSync(origFilePath, 'utf8');
-                    const writePath = inherit ?
-                        `${CURR_DIR}/${file}` :
-                        `${CURR_DIR}/${newProjectPath}/${file}`;
-                    fs.writeFileSync(writePath, contents, 'utf8');
-                } else if (stats.isDirectory()) {
-                    const writePath = inherit ?
-                        `${CURR_DIR}/${file}` :
-                        `${CURR_DIR}/${newProjectPath}/${file}`;
-                    try {
-                        fs.mkdirSync(writePath);
-                    } catch (e) {
-                        pe.render(new Error('[!] A project may seem to exist in the path specified, try another name.'));
-                    }
-                    // recursive call
-                    createDirectoryContents(`${templatePath}/${file}`, `${newProjectPath}/${file}`);
-                }
-                if (index === filesToCreate.length - 1)
-                    resolve(true)
-            });
-        } catch (err) {
-            reject(err)
         }
+        // copy every file and directory of the selected template.
+        await createDirectoryContents(currentDirectory, templatePath, projectName, inherit)
+        await logInfo("Finished creating files.")
+
+        // execute npm init in order to setup the workplace and package.json.
+        await initWorkplace(__dirname, inherit, projectName)
+        await logInfo("Workplace has been set up. (npm init)")
+
+        await dependencyHeaderLog("Installing dependencies")
+        let progress = 0
+        dependenciesBar.start(workplaceSetUpSteps.length, progress) // start the progress bar with a total value of 100 and start value of 0
+        // install each dependencies specified in workplaceSetUpSteps.
+        for await (const step of workplaceSetUpSteps) {
+            if (step.cmd) // if the object contains a cmd property
+                await execShell(step.cmd) // execute its value in cmd using exec.
+            // await logInfo(step.msg) // log to console the msg value of the object.
+            progress ++
+            dependenciesBar.update(progress)
+        }
+        dependenciesBar.stop()
+
+        // add start script to package.json.
+        await editPkgJson({
+            scripts: {
+                test: "echo \"Error: no test specified\" && exit 1",
+                start: "node ."
+            },
+        }, inherit ? './' : `./${projectName}/`)
+        await logInfo("Succesfully added start script.")
     })
-}
-
-function execShell(cmd) {
-    return new Promise((resolve, reject) => {
-        exec(cmd, (error, stdout, stderr) => {
-            if (error) {
-                reject(error);
-            }
-            resolve(stdout ? stdout : stderr);
-        });
-    });
-}
-
-async function initWorkplace(inherit, projectname="") {
-    return new Promise(resolve => {
-        spawn('npm', ['init', '-y'], {
-            cwd: inherit ? __dirname : `${path.resolve(process.cwd())}/${projectname}/`,        // <--- 
-            shell: true,
-            // stdio: 'inherit'
-        });
-        resolve(true)
+    .catch(async err => {
+        console.log(err);
+        await logError("An error occurred while retrieving inputs, please try again.")
+        return pe.render(err)
     })
-}
-const colorsCC = {
-    Reset : "\x1b[0m",
-    FgBlue : "\x1b[34m",
-    FgMagenta : "\x1b[35m"
-}
-
-function logError(msg) {
-    return new Promise(resolve => {
-        console.log("\x1b[41m Error \x1b[0m", `\x1b[31m ${msg} \x1b[0m`)
-        resolve()
-    })
-} // TODO fix colors class and refactor the code
-
-function logInfo(msg) {
-    return new Promise(resolve => {
-        console.log(colorsCC.FgMagenta + "[CTA] |-> " + colorsCC.FgBlue + msg + colorsCC.Reset)
-        resolve()
-    })
-}
-
-async function editPkgJson(obj, path) {
-    return new Promise(async (resolve, reject) => {
-        const pkgJson = new PackageJson(path)
-        await pkgJson.load()
-        pkgJson.update(obj)
-        await pkgJson.save()
-        await logInfo("package.json has updated successfully.")
-        resolve(true)
-    })
-
-}   
-
-// TODO fix edit pakcage.json -> add start script
-// < - -- -- Driver Code -- -- - >
-main()
-
-
-
-
-
-
-
-
-
 
