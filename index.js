@@ -16,7 +16,7 @@ import cliProgress from 'cli-progress'
 import colors from 'ansi-colors'
 
 const dependenciesBar = new cliProgress.SingleBar({
-    format: colors.green('> ') + colors.blue('{bar}') + '| {percentage}% || {value}/{total} Chunks',
+    format: colors.green('> ') + colors.blue('{bar}') + '| {percentage}% || {value}/{total} Modules',
     barCompleteChar: '\u2588',
     barIncompleteChar: '\u2591',
     hideCursor: true
@@ -56,15 +56,13 @@ inquirer.prompt(QUESTIONS)
         // get the exact path of the chosen template.
         const templatePath = `${__dirname}/templates/${projectChoice}`;
         const inherit = projectName === "."
-        // the array below contains a few steps of the set up.
-        // each step must have a property named msg to be logged to the console.
-        // a cmd property is optional and the value assined to it will be executed,
-        // before logging the value of the msg property of the object.
-        const workplaceSetUpSteps = [
+
+        // array below contains installation commands(npm i <pkgName>)
+        // for each dependency listed in the DEPENDENCIES array. 
+        const dependenciesInstallationCommands = [
             ...DEPENDENCIES.map(dependency => ({
                 cmd: `npm install ${!inherit ? `--prefix ./${projectName} ${dependency}` : dependency}`,
-                msg: `Succesfully installed ${dependency}`
-            })),
+            })), // TODO Refactor the dependency installation.
         ]
         if (!inherit) {
             // if the user chose a name, Try to create a directory with that name.
@@ -84,17 +82,18 @@ inquirer.prompt(QUESTIONS)
 
         await dependencyHeaderLog("Installing dependencies")
         let progress = 0
-        dependenciesBar.start(workplaceSetUpSteps.length, progress) // start the progress bar with a total value of 100 and start value of 0
-        // install each dependencies specified in workplaceSetUpSteps.
-        for await (const step of workplaceSetUpSteps) {
-            if (step.cmd) // if the object contains a cmd property
-                await execShell(step.cmd) // execute its value in cmd using exec.
-            // await logInfo(step.msg) // log to console the msg value of the object.
+        // start the progress bar with a total value of 100 and start value of 0
+        dependenciesBar.start(dependenciesInstallationCommands.length, progress) 
+        // install each dependencies specified in dependenciesInstallationCommands.
+        for await (const step of dependenciesInstallationCommands) {
+            // if the object contains a cmd property
+            if (step.cmd)
+                // execute its value in cmd using exec.
+                await execShell(step.cmd)
             progress ++
             dependenciesBar.update(progress)
         }
         dependenciesBar.stop()
-
         // add start script to package.json.
         await editPkgJson({
             scripts: {
