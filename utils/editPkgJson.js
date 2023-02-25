@@ -1,5 +1,6 @@
 import PackageJson from '@npmcli/package-json'
 import logInfo from './logInfo.js'
+import colors from 'ansi-colors'
 
 /** modifies package.json | adds or modifies package.json properties. */
 export default async function editPkgJson(obj, path) {
