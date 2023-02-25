@@ -51,30 +51,6 @@ const QUESTIONS = [{
     },
 ];
 
-<<<<<<< Updated upstream
-console.clear()
-inquirer.prompt(QUESTIONS)
-    .then(async answers => {
-        const projectChoice = answers['project-choice'];
-        const projectName = answers['project-name'];
-        // get the exact path of the chosen template.
-        const templatePath = `${__dirname}/templates/${projectChoice}`;
-        const inherit = projectName === "."
-
-        // array below contains installation commands(npm i <pkgName>)
-        // for each dependency listed in the DEPENDENCIES array. 
-        const dependenciesInstallationCommands = [
-            ...DEPENDENCIES.map(dependency => ({
-                cmd: `npm install ${!inherit ? `--prefix ./${projectName} ${dependency}` : dependency}`,
-            })), // TODO Refactor the dependency installation.
-        ]
-        if (!inherit) {
-            // if the user chose a name, Try to create a directory with that name.
-            try {
-                fs.mkdirSync(`${currentDirectory}/${projectName}`)
-            } catch (err) {
-                return await logError(`A directory with this name already exists, please try another name.`)
-=======
 
 (async () => {
     console.clear()
@@ -116,7 +92,6 @@ inquirer.prompt(QUESTIONS)
                 } catch (err) {
                     return await logError(`A directory with this name already exists, please try another name.`)
                 }
->>>>>>> Stashed changes
             }
 
             // word art of create-telebot-app
@@ -125,36 +100,6 @@ inquirer.prompt(QUESTIONS)
             await createDirectoryContents(currentDirectory, templatePath, projectName, inherit)
             await logInfo("Finished creating files.")
 
-<<<<<<< Updated upstream
-        await dependencyHeaderLog("Installing dependencies")
-        let progress = 0
-        // start the progress bar with a total value of 100 and start value of 0
-        dependenciesBar.start(dependenciesInstallationCommands.length, progress) 
-        // install each dependencies specified in dependenciesInstallationCommands.
-        for await (const step of dependenciesInstallationCommands) {
-            // if the object contains a cmd property
-            if (step.cmd)
-                // execute its value in cmd using exec.
-                await execShell(step.cmd)
-            progress ++
-            dependenciesBar.update(progress)
-        }
-        dependenciesBar.stop()
-        // add start script to package.json.
-        await editPkgJson({
-            scripts: {
-                test: "echo \"Error: no test specified\" && exit 1",
-                start: "node ."
-            },
-        }, inherit ? './' : `./${projectName}/`)
-        await logInfo("Succesfully added start script.")
-    })
-    .catch(async err => {
-        console.log(err);
-        await logError("An error occurred while retrieving inputs, please try again.")
-        return pe.render(err)
-    })
-=======
             // execute npm init in order to setup the workplace and package.json.
             await initWorkplace(__dirname, inherit, projectName)
             await logInfo("Workplace has been set up. (npm init)")
@@ -180,7 +125,6 @@ inquirer.prompt(QUESTIONS)
                     start: "node ."
                 },
             }, inherit ? './' : `./${projectName}/`)
->>>>>>> Stashed changes
 
             await logInfo("Succesfully added start script.")
             await HeaderLog("| Finished generating template |")
