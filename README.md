@@ -46,18 +46,19 @@ This way the program will inherit the current directory name and name the projec
 <br>
 
 ---
-
-####  ⚠️ Make sure the values in .env are set.
-####  ⚠️ DATABASE_FILENAME and API_KEY must be set before starting and DATABASE_FILENAME must not be changd after the first time starting the script.
+# 🛠️ Setup .env
+####  ✅ Make sure the values in .env are set.
+####  ❕ DATABASE_FILENAME and API_KEY must be set before starting and DATABASE_FILENAME must not be changd after the first time starting the script.
 Example of .env: 
 ```
-    API_KEY=5763260291:AAGATJAKr4EOc0JR2EnNETR_rYjhONrYo0U
-    SKIP_COMMANDS_ON_TEXT=true
-    ADMINS=111733645,111733645
-    LOG_CHANNEL_ID=
-    DATABASE_FILENAME=data.sqlite3
+API_KEY=5763260291:AAGATJAKr4EOc0JR2EnNETR_rYjhONrYo0U
+SKIP_COMMANDS_ON_TEXT=true
+ADMINS=111733645,111733645
+LOG_CHANNEL_ID=
+DATABASE_FILENAME=data.sqlite3
 ```
-> ### ⚠️ DATABASE_FILENAME must not be changed!, Upon starting the bot for the first time the app will check for the DATABASE_FILENAME you provided, if exists it will use it, if not it will be created. If you change the name a new database will be created and the bot wouldn't use the previous database unless you change the name back.
+
+### ⚠️ DATABASE_FILENAME must not be changed after the first time you run `npm start`!, Upon starting the bot for the first time the app will check for the DATABASE_FILENAME you provided, if exists it will use it, if not it will be created. If you change the name a new database will be created and the bot wouldn't use the previous database unless you change the name back.
 
     
 <br>
