@@ -58,7 +58,7 @@ LOG_CHANNEL_ID=
 DATABASE_FILENAME=data.sqlite3
 ```
 
-### ⚠️ DATABASE_FILENAME must not be changed after the first time you run `npm start`!, Upon starting the bot for the first time the app will check for the DATABASE_FILENAME you provided, if exists it will use it, if not it will be created. If you change the name a new database will be created and the bot wouldn't use the previous database unless you change the name back.
+#### ⚠️ DATABASE_FILENAME must not be changed after the first time you run `npm start`!, Upon starting the bot for the first time the app will check for the DATABASE_FILENAME you provided, if exists it will use it, if not it will be created. If you change the name a new database will be created and the bot wouldn't use the previous database unless you change the name back.
 
     
 <br>
