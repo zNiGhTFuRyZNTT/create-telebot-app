@@ -4,8 +4,12 @@ import path from 'path';
 /** executes 'npm init -y' command in the generated project directory. */
 export default async function initWorkplace(dirName, inherit, projectname = "") {
     return new Promise(resolve => {
+        const cwd = inherit ?
+            `${path.resolve(process.cwd())}` :
+            `${path.resolve(process.cwd())}/${projectname}/`
+
         spawn('npm', ['init', '-y'], {
-            cwd: inherit ? dirName : `${path.resolve(process.cwd())}/${projectname}/`, // <--- 
+            cwd: cwd, // <--- 
             shell: true,
             // stdio: 'inherit'
         });

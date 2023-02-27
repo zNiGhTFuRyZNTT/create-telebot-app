@@ -1,11 +1,11 @@
 {
-  "name": "@zNiGhTFuRyZNTT/create-telebot-app",
+  "name": "@znightfuryzntt/create-telebot-app",
   "version": "1.0.0",
   "description": "Creates a boilerplate telebot project which lets you easily create your telegram bot.",
   "main": "index.js",
   "type": "module",
   "bin": {
-    "create-telebot-app": "./index.js"
+    "create-telebot-app": "index.js"
   },
   "scripts": {
     "start": "parcel index.html",
@@ -47,7 +47,8 @@
     "figlet": "^1.5.2",
     "inquirer": "^9.1.4",
     "pretty-error": "^4.0.0",
-    "rimraf": "^4.1.1"
+    "rimraf": "^4.1.1",
+    "telebot": "^1.4.1"
   },
   "workspaces": []
 }

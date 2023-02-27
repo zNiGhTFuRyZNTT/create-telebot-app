@@ -1,5 +1,5 @@
 const { getUser } = require('../database')
-const { sendLog, sendToUser } = require('../functions')
+const { sendLog, sendToUser } = require('../utils')
 module.exports = {
     name: 'send', // send message to a bot user using userId
     async execute(bot, msg) {

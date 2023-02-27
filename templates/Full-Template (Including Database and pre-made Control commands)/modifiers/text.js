@@ -1,5 +1,5 @@
 const Database = require('../database')
-const { sendLog } = require('../functions')
+const { sendLog } = require('../utils')
 module.exports = {
     name: 'text', // which main event you'd like to edit the data before passing it to.
     execute(bot, data) {

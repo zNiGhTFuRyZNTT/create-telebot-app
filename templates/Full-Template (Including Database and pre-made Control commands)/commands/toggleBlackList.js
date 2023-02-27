@@ -3,8 +3,7 @@ const Database = require('../database')
 module.exports = {
     name: 'toggleBlackList',
     async execute(bot, msg, args) {
-        const is_admin = (bot.admins.indexOf(msg.from.id) >= 0)
-        if (!is_admin) return
+        if (!msg.isAdmin) return
 
         const blacklistTexts = {
             added: `⚠️ You have been added to the blacklist, you won't be able to use the bot anymore,

@@ -1,5 +1,5 @@
 const Database = require('../database')
-const { sendLog } = require('../functions')
+const { sendLog } = require('../utils')
 module.exports = {
     name: 'status',
     async execute(bot, msg) {
