@@ -41,7 +41,8 @@ npm install -g create-telebot-app
 - Now enter a name, a directory with the name you provide will be created
 and the project will be initialized inside of it. if you would like to initialize the project in the current directory just type a single dot and press Enter.
 This way the program will inherit the current directory name and name the project after it, no directory will be created and everything will be set up in the current directory.
-
+- after the setup is done navigate to the project directory and set the .env values.
+- run `npm start` and enjoy 💓✨
 <br>
 
 ---
