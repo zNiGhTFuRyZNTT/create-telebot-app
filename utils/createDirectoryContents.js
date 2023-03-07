@@ -1,4 +1,6 @@
 import fs from 'fs'
+import PrettyError from 'pretty-error';
+const pe = new PrettyError().start()
 
 /** copies the every file of the chosen template to the path specified. */
 export default function createDirectoryContents(currentDirectory, templatePath, newProjectPath, inherit = false) {

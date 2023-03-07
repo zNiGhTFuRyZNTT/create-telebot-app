@@ -47,8 +47,7 @@
     "figlet": "^1.5.2",
     "inquirer": "^9.1.4",
     "pretty-error": "^4.0.0",
-    "rimraf": "^4.1.1",
-    "telebot": "^1.4.1"
+    "rimraf": "^4.1.1"
   },
   "workspaces": []
 }
