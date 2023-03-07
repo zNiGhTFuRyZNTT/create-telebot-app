@@ -1,6 +1,6 @@
 {
   "name": "create-telebot-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Creates a boilerplate telebot project which lets you easily create your telegram bot.",
   "main": "index.js",
   "type": "module",
