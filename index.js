@@ -71,7 +71,8 @@ const run = async () => {
             // get the exact path of the chosen template.
             const templatePath = `${__dirname}/templates/${projectChoice}`;
             const inherit = projectName === "."
-            const node_modules_exists = fs.existsSync("./node_modules")
+            const node_modules_path = inherit ? `./node_modules` : `./${projectName}/node_modules`
+            const node_modules_exists = fs.existsSync(node_modules_path)
             // the array below contains a few steps of the set up.
             // each step must have a property named msg to be logged to the console.
             // a cmd property is optional and the value assined to it will be executed,
