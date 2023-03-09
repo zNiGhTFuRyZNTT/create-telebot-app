@@ -12,6 +12,10 @@
 ### <p align="center"> By <a href="https://github.com/zNiGhTFuRyZNTT">NiGhTFuRy</a> </p>
 
 <br>
+<div style="display: flex; flex-direction: column; align-items: center;">
+<a href="https://www.buymeacoffee.com/znightfuryz" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="text-align: center ; height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 21px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+</div>
+
 
 ## 🔨 Installation
 ```
