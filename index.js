@@ -106,7 +106,7 @@ const run = async () => {
             // execute npm init in order to setup the workplace and package.json.
             await initWorkplace(__dirname, inherit, projectName)
             if (!node_modules_exists) {
-                await fs.promises.mkdir("./node_modules")
+                await fs.promises.mkdir(node_modules_path)
             }
             await logInfo("Workplace has been set up. (npm init)")
 
