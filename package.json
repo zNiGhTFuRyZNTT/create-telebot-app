@@ -7,7 +7,7 @@
   "bin": {
     "create-telebot-app": "index.js"
   },
-  "scripts": {pm update
+  "scripts": {
     "start": "node .",
     "build": "parcel build index.js"
   },
