@@ -1,5 +1,5 @@
 {
-  "name": "@znightfuryzntt/create-telebot-app",
+  "name": "create-telebot-app",
   "version": "1.0.0",
   "description": "Creates a boilerplate telebot project which lets you easily create your telegram bot.",
   "main": "index.js",
