@@ -8,7 +8,7 @@
     "create-telebot-app": "index.js"
   },
   "scripts": {
-    "start": "parcel index.html",
+    "start": "node .",
     "build": "parcel build index.js"
   },
   "repository": {
