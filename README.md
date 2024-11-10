@@ -1,12 +1,13 @@
 <br>
 <br>
 <p align="center">
-<img src="https://cdn.discordapp.com/attachments/977538386359377980/1305008275212730389/photo_2024-06-17_16-45-39.jpg?ex=6731772a&is=673025aa&hm=6753bdc663c4a95e6212278f9acf268367ec99b83e6905cac6251088641965b0&" alt="NEMESIS TEAM LOGO" style=""/>
+<img src="https://cdn.discordapp.com/attachments/1074400663229956167/1305013609138487311/PureLogo.png?ex=67317c22&is=67302aa2&hm=25157ffb20cff4e2397632949ef92c9fe2421736ae92e64971251efb84d219dc&" alt="NEMESIS TEAM LOGO" style="width: 300px; height: auto;"/>
 </p>
 
 <br>
 
 # <p align="center">Create Telebot App</p>
+## <p align="center">By ⚜️ASVARAN GROUP⚜️</p>
 ## <p align="center">An even easier way to write Telegram bots</p>
 ### <p align="center">A cli app which generates a pre-constructed telegram bot template which uses telebot as its main module.</p>
 ### <p align="center"> By <a href="https://github.com/zNiGhTFuRyZNTT">NiGhTFuRy</a> </p>
