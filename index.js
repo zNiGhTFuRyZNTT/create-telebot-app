@@ -9,15 +9,18 @@ import cliProgress from 'cli-progress'
 import colors from 'ansi-colors'
 import checkInternetConnected from 'check-internet-connected';
 
-import logError from './utils/logError.js';
-import logInfo from './utils/logInfo.js'
-import editPkgJson from './utils/editPkgJson.js';
-import execShell from './utils/execShell.js'
-import initWorkplace from './utils/initWorkplace.js'
-import createDirectoryContents from './utils/createDirectoryContents.js'
-import HeaderLog from './utils/HeaderLog.js'
-import asyncLog from './utils/asyncLog.js';
-import ctaWordArt from './utils/ctaWordArt.js'
+import {
+    logError,
+    logInfo,
+    editPkgJson,
+    execShell,
+    initWorkplace,
+    createDirectoryContents,
+    HeaderLog,
+    asyncLog,
+    ctaWordArt
+} from './utils'
+
 
 const dependenciesBar = new cliProgress.SingleBar({
     format: colors.green('> ') + colors.blue('{bar}') + '| {percentage}% || {value}/{total} Modules',

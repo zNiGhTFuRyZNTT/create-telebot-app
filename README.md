@@ -1,7 +1,7 @@
 <br>
 <br>
 <p align="center">
-<img src="https://camo.githubusercontent.com/4bb05e881cdc113a3645551e282f502c237c2913ce087043c267e0a6039309a9/687474703a2f2f692e696d6775722e636f6d2f65454c7a3641772e6a7067" alt="NEMESIS TEAM LOGO" style=""/>
+<img src="https://cdn.discordapp.com/attachments/977538386359377980/1305008275212730389/photo_2024-06-17_16-45-39.jpg?ex=6731772a&is=673025aa&hm=6753bdc663c4a95e6212278f9acf268367ec99b83e6905cac6251088641965b0&" alt="NEMESIS TEAM LOGO" style=""/>
 </p>
 
 <br>
